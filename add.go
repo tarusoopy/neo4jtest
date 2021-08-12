@@ -1,31 +1,28 @@
 package main
 
-import (
-	"fmt"
-	"github.com/jmcvetta/neoism"
-)
+import "github.com/neo4j/neo4j-go-driver/v4/neo4j"
 
-func AddNode() {
-	db, _ := neoism.Connect("http://localhost:7474/db/data")
+func AddNode(driver neo4j.Driver) (string, error) {
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
 
-	// ルートnodeを作成
-	rootnode, _ := db.CreateNode(neoism.Props{"word": "テスト", "url": "http://www.test.com"})
-	//defer newnode.Delete()
+	greeting, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			"CREATE (a:Greeting) SET a.message = $message RETURN a.message + ', from node ' + id(a)",
+			map[string]interface{}{"message": "hello, world"})
+		if err != nil {
+			return nil, err
+		}
 
-	// リレーション用ノードを作成
-	relnode1, _ := db.CreateNode(neoism.Props{"word": "テスト1", "url": "http://www.test1.com"})
-	relnode2, _ := db.CreateNode(neoism.Props{"word": "テスト2", "url": "http://www.test2.com"})
-	relnode3, _ := db.CreateNode(neoism.Props{"word": "テスト3", "url": "http://www.test3.com"})
-	relnode4, _ := db.CreateNode(neoism.Props{"word": "テスト4", "url": "http://www.test4.com"})
-	relnode5, _ := db.CreateNode(neoism.Props{"word": "テスト5", "url": "http://www.test5.com"})
+		if result.Next() {
+			return result.Record().Values[0], nil
+		}
 
-	fmt.Println(newnode.Id())
+		return nil, result.Err()
+	})
+	if err != nil {
+		return "", err
+	}
 
-	// ルートノードにリレーション用ノードを関連付ける
-	newnode.Relate("ConnectTo", relnode1.Id(), neoism.Props{})
-	newnode.Relate("ConnectTo", relnode2.Id(), neoism.Props{})
-	newnode.Relate("ConnectTo", relnode3.Id(), neoism.Props{})
-	newnode.Relate("ConnectTo", relnode4.Id(), neoism.Props{})
-	newnode.Relate("ConnectTo", relnode5.Id(), neoism.Props{})
-
+	return greeting.(string), nil
 }
