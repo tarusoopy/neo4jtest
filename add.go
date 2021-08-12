@@ -8,8 +8,8 @@ func AddNode(driver neo4j.Driver) (string, error) {
 
 	greeting, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"CREATE (a:Greeting) SET a.message = $message RETURN a.message + ', from node ' + id(a)",
-			map[string]interface{}{"message": "hello, world"})
+			"CREATE (company:会社) SET company.name = $name RETURN company.name + ', from node ' + id(company)",
+			map[string]interface{}{"name": "VarioSecure"})
 		if err != nil {
 			return nil, err
 		}
