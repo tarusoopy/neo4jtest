@@ -20,7 +20,11 @@ func main() {
 	Search()
 
 	// Add node
-	trunsctionResult, err := AddNode(driver)
+	item, err := AddNode(driver)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%v\n", item)
 
 	// Add arrow
 
@@ -32,5 +36,4 @@ func main() {
 
 	// Change arrow
 
-	fmt.Println(trunsctionResult, err)
 }
